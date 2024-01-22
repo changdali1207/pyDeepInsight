@@ -93,8 +93,7 @@ class CAMFeatureSelector:
         for i, data in enumerate(dl):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
-            cam = func(model=self.model, target_layers=[self.target_layer],
-                       use_cuda=use_cuda)
+            cam = func(model=self.model, target_layers=[self.target_layer])
             targets = [ClassifierOutputTarget(label) for label in labels]
             grayscale_cam = cam(input_tensor=inputs, targets=targets)
             activations = np.append(activations, grayscale_cam, axis=0)
