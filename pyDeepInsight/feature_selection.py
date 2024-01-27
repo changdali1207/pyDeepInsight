@@ -192,6 +192,38 @@ class CAMFeatureSelector:
             class_idx[cat] = it_pass
         return class_idx
 
+    def calculate_aggregated_activations(self, X: Tensor, y: Tensor,
+                                         batch_size: int = 1) -> np.ndarray:
+        """Calculate aggregated CAM across all inputs.
+
+        Args:
+            X: Tensor of input images
+            y: Tensor of input labels
+            batch_size: Batch size (default 1)
+        Returns:
+            An aggregated CAM
+        """
+        use_cuda = X.is_cuda
+        activations = self.compute_cam(X=X, y=y, batch_size=batch_size,
+                                       use_cuda=use_cuda)
+        aggregated_cam = self.flatten_cam(activations, method="mean")
+        return aggregated_cam
+
+    def select_top_features(self, aggregated_cam: np.ndarray, 
+                            top_n: int = 20) -> np.ndarray:
+        """Select top N features based on aggregated CAM.
+
+        Args:
+            aggregated_cam: Aggregated CAM
+            top_n: Number of top features to select
+        Returns:
+            Indices of top N features
+        """
+        # Flatten the CAM to a single dimension and rank features
+        feature_activations = aggregated_cam.flatten()
+        top_feature_indices = np.argsort(feature_activations)[-top_n:]
+        return top_feature_indices
+
 
 CAM_FUNCTIONS = {
     "GradCAM": pytorch_grad_cam.GradCAM,
