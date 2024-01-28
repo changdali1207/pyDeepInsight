@@ -210,18 +210,18 @@ class CAMFeatureSelector:
         return aggregated_cam
 
     def select_top_features(self, aggregated_cam: np.ndarray, top_n: int = 20) -> np.ndarray:
-    """Select top N features based on aggregated CAM.
-
-    Args:
-        aggregated_cam: Aggregated CAM
-        top_n: Number of top features to select
-    Returns:
-        Indices of top N features
-    """
-    # Flatten the CAM to a single dimension and rank features
-    feature_activations = aggregated_cam.flatten()
-    top_feature_indices = np.argsort(feature_activations)[-top_n:]
-    return top_feature_indices
+        """Select top N features based on aggregated CAM.
+    
+        Args:
+            aggregated_cam: Aggregated CAM
+            top_n: Number of top features to select
+        Returns:
+            Indices of top N features
+        """
+        # Flatten the CAM to a single dimension and rank features
+        feature_activations = aggregated_cam.flatten()
+        top_feature_indices = np.argsort(feature_activations)[-top_n:]
+        return top_feature_indices
 
 
 CAM_FUNCTIONS = {
