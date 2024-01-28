@@ -209,45 +209,28 @@ class CAMFeatureSelector:
         aggregated_cam = self.flatten_cam(activations, method="mean")
         return aggregated_cam
 
-    def select_top_features(self, aggregated_cam: np.ndarray, 
-                            top_n: int = 20) -> np.ndarray:
-        """Select top N features based on aggregated CAM.
-
+    def select_top_features(self, aggregated_cam: np.ndarray, top_n: int = 20) -> np.ndarray:
+        """Select top N features based on aggregated CAM and map them back to original feature coordinates.
+    
         Args:
-            aggregated_cam: Aggregated CAM
-            top_n: Number of top features to select
+            aggregated_cam: Aggregated CAM from all inputs.
+            top_n: Number of top features to select.
         Returns:
-            Indices of top N features
+            Indices of top N features in the original feature space.
         """
         # Flatten the CAM to a single dimension and rank features
         feature_activations = aggregated_cam.flatten()
-        top_feature_indices = np.argsort(feature_activations)[-top_n:]
-        return top_feature_indices
-
-    def select_top_features_across_classes(self, cams: Dict[int, np.ndarray], 
-                                       threshold: float = 0.6, top_n: int = 20) -> np.ndarray:
-        """Select top N features across all classes based on CAMs.
+        top_feature_indices = np.argsort(feature_activations)[::-1]
     
-        Args:
-            cams: A dictionary with classes as keys and a CAM as values.
-            threshold: Activation cutoff for feature importance.
-            top_n: Number of top features to select across all classes.
-        Returns:
-            An array of indices of the top N features across all classes.
-        """
-        # Aggregate activations across all classes
-        all_activations = np.zeros_like(next(iter(cams.values())))
-        for cam in cams.values():
-            all_activations = np.maximum(all_activations, cam)
+        # Map these top feature indices back to their original coordinates
+        # Assuming each feature in aggregated_cam corresponds to a coordinate in self.feature_coords
+        it_pass = np.where(
+            (self.feature_coords == top_feature_indices[:, None]).all(-1)
+        )[1]
+        
+        selected_index = it_pass[:top_n]
     
-        # Apply threshold and flatten the CAM
-        all_activations = np.where(all_activations >= threshold, all_activations, 0)
-        flattened_activations = all_activations.flatten()
-    
-        # Rank features by activation
-        top_feature_indices = np.argsort(flattened_activations)[-top_n:]
-    
-        return top_feature_indices
+        return selected_index
 
 
 CAM_FUNCTIONS = {
