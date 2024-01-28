@@ -224,6 +224,32 @@ class CAMFeatureSelector:
         top_feature_indices = np.argsort(feature_activations)[-top_n:]
         return top_feature_indices
 
+    def select_top_features_across_classes(self, cams: Dict[int, np.ndarray], 
+                                       threshold: float = 0.6, top_n: int = 20) -> np.ndarray:
+        """Select top N features across all classes based on CAMs.
+    
+        Args:
+            cams: A dictionary with classes as keys and a CAM as values.
+            threshold: Activation cutoff for feature importance.
+            top_n: Number of top features to select across all classes.
+        Returns:
+            An array of indices of the top N features across all classes.
+        """
+        # Aggregate activations across all classes
+        all_activations = np.zeros_like(next(iter(cams.values())))
+        for cam in cams.values():
+            all_activations = np.maximum(all_activations, cam)
+    
+        # Apply threshold and flatten the CAM
+        all_activations = np.where(all_activations >= threshold, all_activations, 0)
+        flattened_activations = all_activations.flatten()
+    
+        # Rank features by activation
+        top_feature_indices = np.argsort(flattened_activations)[-top_n:]
+    
+        return top_feature_indices
+
+
 CAM_FUNCTIONS = {
     "GradCAM": pytorch_grad_cam.GradCAM,
     "AblationCAM": pytorch_grad_cam.AblationCAM,
