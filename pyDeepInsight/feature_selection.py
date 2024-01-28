@@ -209,7 +209,7 @@ class CAMFeatureSelector:
         aggregated_cam = self.flatten_cam(activations, method="mean")
         return aggregated_cam
 
-    def select_top_features(self, aggregated_cam: np.ndarray, top_n: int = 20) -> np.ndarray:
+    def select_top_features(self, aggregated_cam: np.ndarray, top_n: int = 20, threshold: float = 0.6) -> np.ndarray:
         """Select top N features based on aggregated CAM and map them back to original feature coordinates.
     
         Args:
@@ -219,18 +219,15 @@ class CAMFeatureSelector:
             Indices of top N features in the original feature space.
         """
         # Flatten the CAM to a single dimension and rank features
-        feature_activations = aggregated_cam.flatten()
-        top_feature_indices = np.argsort(feature_activations)[::-1]
+        cam_pass = np.stack(np.where(aggregated_cam >= threshold)).T
     
         # Map these top feature indices back to their original coordinates
         # Assuming each feature in aggregated_cam corresponds to a coordinate in self.feature_coords
         it_pass = np.where(
-            (self.feature_coords == top_feature_indices[:, None]).all(-1)
+            (self.feature_coords == cam_pass[:, None]).all(-1)
         )[1]
-        
-        selected_index = it_pass[:top_n]
     
-        return selected_index
+        return it_pass
 
 
 CAM_FUNCTIONS = {
